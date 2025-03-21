@@ -14,7 +14,7 @@ class Message {
       id: json["_id"],
       message: json["message"],
       author: json["author"],
-      datetime: DateTime.parse(json["datetime"]).toLocal(),
+      datetime: DateTime.parse(json["datetime"]),
     );
   }
 
@@ -25,6 +25,8 @@ class Message {
       required this.datetime})
       : id = id ?? uuid.v4();
 
-  String get sentDisplay =>
-      "${zeroPad(this.datetime.hour)}:${zeroPad(this.datetime.minute)} ${zeroPad(this.datetime.day)}.${zeroPad(this.datetime.month)}.${this.datetime.year.toString().substring(2)}";
+  String get sentDisplay {
+    var localizedDatetime = datetime.toLocal();
+    return "${zeroPad(localizedDatetime.hour)}:${zeroPad(localizedDatetime.minute)} ${zeroPad(localizedDatetime.day)}.${zeroPad(localizedDatetime.month)}.${localizedDatetime.year.toString().substring(2)}";
+  }
 }

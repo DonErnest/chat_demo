@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:chat_demo/api.dart';
 import 'package:chat_demo/models/message.dart';
@@ -28,24 +27,8 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
 
   Timer? _timer;
 
-  Future<dynamic> fetchMessages() async {
-    final uri = lastMessageDateTime != null
-        ? Uri.parse('${url}?datetime=${lastMessageDateTime!.toUtc().toIso8601String()}')
-        : Uri.parse(url);
-
-    try {
-      final response = await get(uri);
-      if (response.statusCode == 200) {
-        final List<dynamic> jsonData = jsonDecode(response.body);
-        return jsonData;
-      }
-    } catch (error) {
-      return [];
-    }
-  }
-
   Future<void> getMessages() async {
-    final rawData = await fetchMessages();
+    final rawData = await fetchMessages(lastMessageDateTime);
     if (rawData.length != 0) {
       setState(() {
         var newMessages = List<Message>.from(
@@ -67,7 +50,6 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
   void startFetching() async {
     _timer = Timer.periodic(const Duration(seconds: 5), (Timer timer) async {
       await getMessages();
-      print("messages fetched, ${messages.length}, last: ${messages.last.datetime}");
     });
   }
 
