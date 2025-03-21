@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:chat_demo/enums.dart';
 import 'package:chat_demo/screens/messages_screen.dart';
 import 'package:http/http.dart';
 
+import 'api.dart';
 import 'models/message.dart';
 
 class MessengerPrototype extends StatefulWidget {
@@ -20,13 +22,16 @@ class _MessengerPrototypeState extends State<MessengerPrototype> {
 
   List<Message> messages = [];
   DateTime? lastMessageDateTime;
-  bool? isFetching;
-  final String url = "http://146.185.154.90:8000/messages";
+  bool needsScroll = false;
+
+  Timer? _timer;
 
   Future<dynamic> fetchMessages() async {
     final uri = lastMessageDateTime != null
-        ? Uri.parse('${url}?datetime=${lastMessageDateTime!.toIso8601String()}')
+        ? Uri.parse(
+            '${url}?datetime=${lastMessageDateTime!.toUtc().toIso8601String()}')
         : Uri.parse(url);
+
     try {
       final response = await get(uri);
       if (response.statusCode == 200) {
@@ -41,28 +46,40 @@ class _MessengerPrototypeState extends State<MessengerPrototype> {
   Future<void> getMessages() async {
     final rawData = await fetchMessages();
     if (rawData.length != 0) {
-      var newMessages = List<Message>.from(rawData.map((json) => Message.fromJson(json)).toList());
-      messages = messages + newMessages;
-
-      if (messages.length > 0) {
-        setLastDateTime(messages.last.datetime);
-      }
-    } else {}
+      setState(() {
+        var newMessages = List<Message>.from(
+            rawData.map((json) => Message.fromJson(json)).toList());
+        if (newMessages.isNotEmpty) {
+          lastMessageDateTime = newMessages.last.datetime;
+          needsScroll = true;
+        }
+        messages = messages + newMessages;
+      });
+    }
     ;
-    dataFetched();
+  }
+
+  void startFetching() async {
+    _timer = Timer.periodic(const Duration(seconds: 5), (Timer timer) async {
+      await getMessages();
+      print(
+          "messages fetched, ${messages.length}, last: ${messages.last.datetime}");
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    getMessages();
+    startFetching();
   }
 
-  void dataFetched() {
-    setState(() {
-      isFetching = false;
-    });
+  @override
+  void dispose() {
+    _timer?.cancel(); // Cancel the timer when the widget is disposed
+    super.dispose();
   }
+
+  void dataFetched() {}
 
   void setLastDateTime(DateTime datetime) {
     setState(() {
@@ -79,17 +96,12 @@ class _MessengerPrototypeState extends State<MessengerPrototype> {
   @override
   Widget build(BuildContext context) {
     Widget screen = ContactMessagesScreen(
-        username: username,
-        messages: messages,
-        updateMsgs: updateMessages,
-        dataFetched: dataFetched,
-        setLastDateTime: setLastDateTime);
+      username: username,
+    );
 
     return MaterialApp(
       home: Scaffold(
-        body: isFetching != null && isFetching!
-            ? Center(child: CircularProgressIndicator())
-            : screen,
+        body: screen,
       ),
     );
   }
