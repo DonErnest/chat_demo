@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'package:chat_demo/models/message.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_demo/widgets/canvas.dart';
-import 'package:chat_demo/widgets/message_from_contact.dart';
-import 'package:chat_demo/widgets/message_to_contact.dart';
+import 'package:chat_demo/widgets/message_row.dart';
 
 class ContactMessagesScreen extends StatelessWidget {
   final String username;
@@ -30,11 +29,14 @@ class ContactMessagesScreen extends StatelessWidget {
     List<Widget> message_rows = [];
 
     for (var message in messages) {
-      if (message.author == username) {
-        message_rows.add(MessageToContactRow(text: message.message));
-      } else {
-        message_rows.add(MessageFromContactRow(text: message.message));
-      }
+      message_rows.add(
+        MessageRow(
+          author: message.author,
+          text: message.message,
+          sent: message.sentDisplay,
+          byAuthor: message.author == username ? true : false,
+        ),
+      );
     }
 
     return MessengerCanvas(
