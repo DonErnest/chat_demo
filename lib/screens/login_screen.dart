@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               "Enter your chat username",
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -38,13 +38,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 fontSize: 30,
               ),
             ),
-            Divider(
+            const Divider(
               color: Color.fromRGBO(255, 163, 26, 1),
             ),
             TextField(
               controller: _loginController,
               onChanged: (value) => setState(() => _newLogin = value),
               maxLines: 1,
+              maxLength: 30,
               style: TextStyle(color: Colors.black, fontSize: 20),
               decoration: const InputDecoration(
                 label: Text(

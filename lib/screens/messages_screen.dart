@@ -10,9 +10,10 @@ import 'package:http/http.dart';
 class ContactMessagesScreen extends StatefulWidget {
   final String username;
 
-  const ContactMessagesScreen(
-      {super.key,
-      required this.username,});
+  const ContactMessagesScreen({
+    super.key,
+    required this.username,
+  });
 
   @override
   State<ContactMessagesScreen> createState() => _ContactMessagesScreenState();
@@ -21,6 +22,9 @@ class ContactMessagesScreen extends StatefulWidget {
 class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
   late final ScrollController _scrollController;
   late final TextEditingController _messageTextController;
+
+  String? newMessage;
+
   List<Message> messages = [];
   DateTime? lastMessageDateTime;
   bool needsScroll = false;
@@ -58,7 +62,7 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
     _timer?.cancel(); // Cancel the timer when the widget is disposed
     super.dispose();
   }
-  
+
   @override
   void initState() {
     _scrollController = ScrollController();
@@ -68,20 +72,22 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
   }
 
   Future<void> sentMessage() async {
-    await post(Uri.parse(url), body: {
-      "message": _messageTextController.text,
-      "author": widget.username
-    });
-    _messageTextController.text = "";
+    if (newMessage != null) {
+      await post(Uri.parse(url), body: {
+        "message": newMessage,
+        "author": widget.username
+      });
+      newMessage = null;
+      _messageTextController.text = "";
+    }
   }
 
   Future<void> _scrollToEnd() async {
-    if(_scrollController.hasClients) {
+    if (_scrollController.hasClients) {
       await _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut
-      );
+          curve: Curves.easeInOut);
     }
   }
 
@@ -99,9 +105,8 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
                 author: messages[idx].author,
                 text: messages[idx].message,
                 sent: messages[idx].sentDisplay,
-                byAuthor: messages[idx].author == widget.username
-                    ? true
-                    : false,
+                byAuthor:
+                    messages[idx].author == widget.username ? true : false,
               ),
             ),
           ),
@@ -112,6 +117,11 @@ class _ContactMessagesScreenState extends State<ContactMessagesScreen> {
                   flex: 3,
                   child: TextField(
                     controller: _messageTextController,
+                    onChanged: (value) => {
+                      setState(() {
+                        newMessage = value;
+                      })
+                    },
                     maxLines: 2,
                     style: TextStyle(color: Colors.black, fontSize: 20),
                     decoration: const InputDecoration(
