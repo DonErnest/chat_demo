@@ -1,8 +1,4 @@
 enum Screen {
-  main,
+  login,
   contact
-}
-
-enum MessageDirection{
-  fromContact, toContact
 }

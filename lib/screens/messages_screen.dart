@@ -1,21 +1,36 @@
+import 'dart:convert';
+
 import 'package:chat_demo/models/message.dart';
 import 'package:flutter/material.dart';
-import 'package:chat_demo/enums.dart';
 import 'package:chat_demo/widgets/canvas.dart';
 import 'package:chat_demo/widgets/message_from_contact.dart';
 import 'package:chat_demo/widgets/message_to_contact.dart';
 
 class ContactMessagesScreen extends StatelessWidget {
   final String username;
+  final List<Message> messages;
+  final DateTime? lastMessageDateTime;
+  final void Function(List<Message>) updateMsgs;
+  final void Function() dataFetched;
+  final void Function(DateTime datetime) setLastDateTime;
 
-  const ContactMessagesScreen({super.key, required this.username});
+  const ContactMessagesScreen(
+      {super.key,
+      required this.username,
+      this.lastMessageDateTime,
+      required this.dataFetched,
+      required this.setLastDateTime,
+      required this.updateMsgs,
+      required this.messages});
+
+  final String url = "http://146.185.154.90:8000/messages";
 
   @override
   Widget build(BuildContext context) {
     List<Widget> message_rows = [];
 
     for (var message in messages) {
-      if (message.author != username) {
+      if (message.author == username) {
         message_rows.add(MessageToContactRow(text: message.message));
       } else {
         message_rows.add(MessageFromContactRow(text: message.message));
